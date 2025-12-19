@@ -8,15 +8,18 @@ TaskData gorevler[50];
 int gorevSayisi = 0;
 int globalTime = 0;
 
+// Öncelik seviyelerine göre ayrılmış kuyruklar
 TaskData* queues[MAX_QUEUE_LEVEL][50];
 int queue_lens[MAX_QUEUE_LEVEL] = {0};
 
+// Kuyruğa yeni eleman ekleme (en sona ekler)
 void Enqueue(int p, TaskData* t) {
     if (p >= MAX_QUEUE_LEVEL) p = MAX_QUEUE_LEVEL - 1;
     queues[p][queue_lens[p]] = t;
     queue_lens[p]++;
 }
 
+// Kuyruğun başından eleman çıkarma
 TaskData* Dequeue(int p) {
     if (queue_lens[p] == 0) return NULL;
     TaskData* t = queues[p][0];
@@ -27,6 +30,7 @@ TaskData* Dequeue(int p) {
     return t;
 }
 
+// Belirli bir görevi kuyruktan silme (özellikle zaman aşımında lazım oluyor)
 void RemoveTaskFromQueue(int p, TaskData* t) {
     int foundIndex = -1;
     for (int i = 0; i < queue_lens[p]; i++) {
@@ -43,7 +47,7 @@ void RemoveTaskFromQueue(int p, TaskData* t) {
     }
 }
 
-
+// Dosyadan satır satır verileri çekip TaskData dizisine dolduruyoruz
 void DosyaOku(const char* dosyaAdi) {
     FILE *file = fopen(dosyaAdi, "r");
     if (file == NULL) { printf("HATA: Dosya yok!\n"); exit(1); }
@@ -66,7 +70,7 @@ void DosyaOku(const char* dosyaAdi) {
     fclose(file);
 }
 
-
+// Ana simülasyon döngüsü
 void SimulationTask(void *pvParameters) {
     (void) pvParameters;
     printf("Simulasyon Basliyor...\n");
@@ -75,7 +79,7 @@ void SimulationTask(void *pvParameters) {
     TaskData* previousTask = NULL;
 
     for(;;) {
-
+        // Geliş zamanı gelen prosesleri kuyruğa alalım
         for(int i=0; i<gorevSayisi; i++) {
             if (gorevler[i].arrivalTime == globalTime) {
                 gorevler[i].startTime = globalTime;
@@ -83,10 +87,12 @@ void SimulationTask(void *pvParameters) {
             }
         }
 
-
+        // Karar mekanizması: Çalışacak görevi seç
+        // Eğer 0 öncelikli (en yüksek) bir iş varsa, o bitene kadar devam eder (Gerçek zamanlı)
         if (currentTask != NULL && currentTask->priority == 0 && currentTask->remainingTime > 0) {
-       
+            // Devam...
         } else {
+            // Değilse, kuyrukları sırayla kontrol et (En üstten alta)
             currentTask = NULL;
             for(int p=0; p < MAX_QUEUE_LEVEL; p++) {
                 if (queue_lens[p] > 0) {
@@ -96,7 +102,7 @@ void SimulationTask(void *pvParameters) {
             }
         }
 
-     
+        // Seçilen görevi ekrana yazdır ve süresini düş
         if (currentTask != NULL && currentTask->remainingTime > 0) {
             if (currentTask->hasStarted == 0) {
                 printf(BLUE "%-2d.0000 sn %-20s (id:%-4s  öncelik:%2d  kalan süre:%2d sn)\n" RESET,
@@ -121,10 +127,10 @@ void SimulationTask(void *pvParameters) {
             previousTask = currentTask;
         }
 
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(1000)); // 1 saniye bekle (Gerçek zamanlı simülasyon)
         globalTime++;
 
-    
+        // Görev bittiyse veya önceliği düşürülecekse yapılacak işlemler
         if (currentTask != NULL) {
             if (currentTask->remainingTime == 0) {
                 printf(MAGENTA "%-2d.0000 sn %-20s (id:%-4s  öncelik:%2d  kalan süre: 0 sn)\n" RESET,
@@ -137,8 +143,8 @@ void SimulationTask(void *pvParameters) {
                 previousTask = NULL;
             }
             else if (currentTask->priority > 0) {
+                // Önceliği 0'dan büyükse, her saniye önceliğini bir düşürüp (sayıca artış) alt kuyruğa atıyoruz
                 Dequeue(currentTask->priority);
-
                 if (currentTask->priority < MAX_QUEUE_LEVEL - 1) {
                     currentTask->priority++;
                 }
@@ -153,6 +159,7 @@ void SimulationTask(void *pvParameters) {
             }
         }
 
+        // Tüm görevler bitti mi kontrolü
         int aktif = 0;
         for(int i=0; i<gorevSayisi; i++)
             if (gorevler[i].remainingTime > 0) aktif = 1;
@@ -161,14 +168,14 @@ void SimulationTask(void *pvParameters) {
             exit(0);
         }
 
-      
+        // Zaman aşımı (Timeout) kontrolü: 20 saniye kuralı
         for(int i=0; i<gorevSayisi; i++) {
             if (gorevler[i].startTime != -1 && gorevler[i].remainingTime > 0) {
                 int timePassed = globalTime - gorevler[i].startTime;
                 if (timePassed >= 20) {
                     int kill = 0;
-                    if (gorevler[i].hasStarted == 0) kill = 1;
-                    else if (gorevler[i].priority < 3) kill = 1;
+                    if (gorevler[i].hasStarted == 0) kill = 1; // Hiç başlamadıysa
+                    else if (gorevler[i].priority < 3) kill = 1; // Başladı ama önceliği düşükse
 
                     if (kill) {
                         printf(RED "%-2d.0000 sn %-20s (id:%-4s  öncelik:%2d  kalan süre:%2d sn)\n" RESET,
@@ -183,4 +190,4 @@ void SimulationTask(void *pvParameters) {
             }
         }
     }
-} 
+}

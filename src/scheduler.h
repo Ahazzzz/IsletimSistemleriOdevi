@@ -4,6 +4,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
+// Çıktıları renklendirmek için ANSI kodları
 #define RESET   "\033[0m"
 #define RED     "\033[31m"
 #define GREEN   "\033[32m"
@@ -11,10 +12,9 @@
 #define BLUE    "\033[34m"
 #define MAGENTA "\033[35m"
 
+#define MAX_QUEUE_LEVEL 6
 
-#define MAX_QUEUE_LEVEL 4
-
-
+// Bir görevin sahip olduğu tüm bilgiler
 typedef struct {
     char id[16];
     int arrivalTime;
@@ -30,8 +30,7 @@ extern TaskData gorevler[50];
 extern int gorevSayisi;
 extern int globalTime;
 
-
 void SimulationTask(void *pvParameters);
 void DosyaOku(const char* dosyaAdi);
 
-#endif 
+#endif
