@@ -1,70 +1,60 @@
-🚀 İşletim Sistemleri Ödevi: FreeRTOS Zaman Paylaşımlı Planlayıcı
-Bu proje, İşletim Sistemleri dersi kapsamında, FreeRTOS çekirdeği kullanılarak geliştirilmiş bir Zaman Paylaşımlı Görev Planlayıcı (Time-Sliced Task Scheduler) uygulamasıdır. Proje, gerçek zamanlı işletim sistemi (RTOS) kavramlarını PC ortamında simüle ederek görev yönetimini görselleştirmeyi amaçlar.
+# 🚀 İşletim Sistemleri Ödevi
 
-📌 Proje Özellikleri
-FreeRTOS Entegrasyonu: Gerçek zamanlı işletim sistemi çekirdeği üzerinde görev yönetimi.
+**FreeRTOS ile Zaman Paylaşımlı Görev Planlayıcı & PC Üzerinde Scheduler Simülasyonu**
 
-Zaman Paylaşımlı Planlama: Görevlerin önceliklerine ve zaman dilimlerine (time-quantums) göre adil bir şekilde çalıştırılması.
+---
 
-PC Simülasyonu: Geliştirilen planlayıcının standart bir bilgisayar üzerinde (Linux/Windows/Mac) test edilebilir yapısı.
+## 📌 Proje Hakkında
 
-Detaylı Analiz: Rapor.pdf içerisinde sistemin çalışma mantığı ve performans çıktıları yer almaktadır.
+Bu proje, **İşletim Sistemleri dersi** ödevi kapsamında geliştirilmiştir.
 
-📁 Proje Klasör Yapısı
-Plaintext
+Ana amaçlar:
+- FreeRTOS kernel'i kullanarak **zaman paylaşımlı (time-sliced) görev planlayıcı** implementasyonu yapmak
+- Eşit önceliğe sahip görevlerin CPU zamanını adil şekilde paylaşmasını sağlamak (time quanta ile)
+- Gerçek zamanlı işletim sistemi (RTOS) davranışlarını **PC ortamında simüle etmek** ve görselleştirmek
 
-📦 IsletimSistemleriOdevi
- ┣ 📂 FreeRTOS      # FreeRTOS çekirdek dosyaları
- ┣ 📂 include       # Başlık dosyaları (.h)
- ┣ 📂 src           # Kaynak kodlar (.c)
- ┣ 📜 Makefile      # Derleme yapılandırması
- ┣ 📜 Rapor.pdf     # Proje teknik dökümantasyonu ve analizler
- ┣ 📜 Çıktı.jpg     # Uygulamanın çalışma ekran görüntüsü
- ┣ 📜 giris.txt     # Örnek girdi verileri
- ┗ 📜 IsletimSistemleriOdevi_yorumlu.zip  # Açıklama satırlı kaynak kod arşivi
-🛠️ Başlarken
-Gereksinimler
-Projeyi yerel makinenizde derlemek ve çalıştırmak için aşağıdaki araçların kurulu olması gerekir:
+Proje, FreeRTOS kavramlarını pratikte uygulamayı ve görev yönetimi, önceliklendirme ile zaman paylaşımı mekanizmalarını anlamayı hedefler.
 
-GCC Toolchain: Linux, macOS (Xcode) veya Windows (MinGW/MSYS2).
+Repo içerikleri:
+- FreeRTOS kernel kaynak kodları
+- Proje kaynak kodları (yorumlu ve yorumlusuz versiyonlar)
+- Ödev raporu (PDF)
+- Makefile ve derleme dosyaları
+- Örnek giriş/çıkış dosyaları
+- Program çıktısı görselleri
 
-GNU Make: Derleme işlemlerini otomatize etmek için.
 
-POSIX Standartları: PC üzerinde FreeRTOS simülasyonu için POSIX kütüphanesi desteği.
+---
 
-Kurulum ve Çalıştırma
-Depoyu Klonlayın:
+## 🛠️ Başlarken
 
-Bash
+### Gereksinimler
+Projeyi derleyip çalıştırmak için:
+- **GCC** (Linux, macOS veya Windows'ta MinGW/WSL)
+- **Make** aracı
+- Standart C kütüphaneleri (FreeRTOS repo içinde mevcut)
 
+### Kurulum ve Derleme
+
+```bash
+# Repoyu klonlayın
 git clone https://github.com/Ahazzzz/IsletimSistemleriOdevi.git
+
+# Klasöre girin
 cd IsletimSistemleriOdevi
-Projeyi Derleyin:
 
-Bash
-
+# Projeyi derleyin
 make
-Uygulamayı Çalıştırın:
 
-Bash
-
+# Çalıştırın (derleme sonrası oluşan executable genellikle 'scheduler' adını alır)
 ./scheduler
-(Not: Derleme sonrası oluşan çalıştırılabilir dosya adı Makefile içeriğine göre farklılık gösterebilir.)
+```
+## ⚙️ Kullanım ve Önemli Özellikler
+Proje, giriş dosyasındaki görevleri okuyarak FreeRTOS tarzı bir planlayıcı ile yürütür:
 
-⚙️ Çalışma Mantığı
-Proje, giris.txt dosyasından okunan veya kod içerisinde tanımlanan görevleri (tasks) FreeRTOS yapısına uygun olarak oluşturur.
+Görev oluşturma ve öncelik atama
+Eşit öncelikli görevlerde zaman dilimli (time-sliced) planlama
+Görevlerin sırayla CPU zamanını paylaşması
+Simülasyon çıktıları ile gerçek zamanlı davranış gözlemlenebilir
 
-Görev Öncelikleri: Her görevin belirli bir öncelik değeri vardır.
-
-Zaman Dilimi: Aynı önceliğe sahip görevler, işlemciyi sırayla ve eşit sürelerle kullanır.
-
-İzleme: Çalışma esnasında hangi görevin ne zaman işlemciyi aldığı terminal üzerinden takip edilebilir.
-
-📄 Belgeler ve Raporlama
-Proje ile ilgili tüm teknik detaylara Rapor.pdf dosyasından ulaşabilirsiniz. Rapor şunları içerir:
-
-Sistem mimarisi ve tasarım kararları.
-
-FreeRTOS konfigürasyonu (FreeRTOSConfig.h).
-
-Deneysel sonuçlar ve karşılaşılan zorluklar.
+Daha detaylı açıklama ve FreeRTOS yapılandırması (FreeRTOSConfig.h vb.) için rapora bakınız.
