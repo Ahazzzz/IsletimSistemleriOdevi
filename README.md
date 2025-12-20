@@ -1,103 +1,70 @@
-📘 İşletim Sistemleri Ödevi – FreeRTOS Scheduler
+🚀 İşletim Sistemleri Ödevi: FreeRTOS Zaman Paylaşımlı Planlayıcı
+Bu proje, İşletim Sistemleri dersi kapsamında, FreeRTOS çekirdeği kullanılarak geliştirilmiş bir Zaman Paylaşımlı Görev Planlayıcı (Time-Sliced Task Scheduler) uygulamasıdır. Proje, gerçek zamanlı işletim sistemi (RTOS) kavramlarını PC ortamında simüle ederek görev yönetimini görselleştirmeyi amaçlar.
 
-🎓 Ders: İşletim Sistemleri
-👨‍💻 Proje: FreeRTOS PC Scheduler Uygulaması
-📂 Dil: C
-📅 Hazırlayan: Ahazzzz
+📌 Proje Özellikleri
+FreeRTOS Entegrasyonu: Gerçek zamanlı işletim sistemi çekirdeği üzerinde görev yönetimi.
 
-🧠 Proje Hakkında
+Zaman Paylaşımlı Planlama: Görevlerin önceliklerine ve zaman dilimlerine (time-quantums) göre adil bir şekilde çalıştırılması.
 
-Bu proje, FreeRTOS gerçek zamanlı işletim sistemi benzeri bir scheduler (zamanlayıcı) simülasyonu oluşturmayı amaçlar. PC üzerinde çalışan bir scheduler implementasyonu geliştirilmiştir. Proje, işletim sistemleri dersinde scheduler yapısını, görev yönetimini ve zaman paylaştırmalı çalışmayı anlamak için yapılmıştır.
+PC Simülasyonu: Geliştirilen planlayıcının standart bir bilgisayar üzerinde (Linux/Windows/Mac) test edilebilir yapısı.
 
-Bu çalışma sayesinde;
+Detaylı Analiz: Rapor.pdf içerisinde sistemin çalışma mantığı ve performans çıktıları yer almaktadır.
 
-Görevlerin belirli zaman aralıklarında nasıl çalıştırıldığı,
+📁 Proje Klasör Yapısı
+Plaintext
 
-Task yönetimi ve idle task konseptleri,
+📦 IsletimSistemleriOdevi
+ ┣ 📂 FreeRTOS      # FreeRTOS çekirdek dosyaları
+ ┣ 📂 include       # Başlık dosyaları (.h)
+ ┣ 📂 src           # Kaynak kodlar (.c)
+ ┣ 📜 Makefile      # Derleme yapılandırması
+ ┣ 📜 Rapor.pdf     # Proje teknik dökümantasyonu ve analizler
+ ┣ 📜 Çıktı.jpg     # Uygulamanın çalışma ekran görüntüsü
+ ┣ 📜 giris.txt     # Örnek girdi verileri
+ ┗ 📜 IsletimSistemleriOdevi_yorumlu.zip  # Açıklama satırlı kaynak kod arşivi
+🛠️ Başlarken
+Gereksinimler
+Projeyi yerel makinenizde derlemek ve çalıştırmak için aşağıdaki araçların kurulu olması gerekir:
 
-FreeRTOS tarzı scheduler mimarisi,
+GCC Toolchain: Linux, macOS (Xcode) veya Windows (MinGW/MSYS2).
 
-Zaman paylaştırmalı (time-sharing) çalışan sistemlerin nasıl oluşturulduğu
-gibi temel işletim sistemi kavramları uygulamalı olarak deneyimlenmiştir.
+GNU Make: Derleme işlemlerini otomatize etmek için.
 
-📁 Proje İçeriği
-IsletimSistemleriOdevi/
-├── FreeRTOS/                      # FreeRTOS çekirdek kodları
-├── include/                       # Header dosyaları
-├── src/                           # Kaynak kodlar
-├── Makefile                       # Proje derleme betiği
-├── Rapor.pdf                      # Proje raporu (PDF)
-├── Makefile.txt                   # Açıklamalı Makefile
-├── giris.txt                      # Girdi örneği
-├── Çıktı.jpg                     # Program çıktı ekran görüntüsü
-├── Çıktı.pdf                     # Çıktı PDF formatında
-├── IsletimSistemleriOdevi.zip     # Kaynak arşivi
-├── IsletimSistemleriOdevi_yorumlu.zip # Açıklamalı kaynak arşivi
-└── README.md                     # Bu belge
+POSIX Standartları: PC üzerinde FreeRTOS simülasyonu için POSIX kütüphanesi desteği.
 
-🛠️ Özellikler
+Kurulum ve Çalıştırma
+Depoyu Klonlayın:
 
-✨ Proje içeriğinde aşağıdaki özellikler bulunmaktadır:
-
-✔️ FreeRTOS tabanlı scheduler implementasyonu
-
-✔️ Birden fazla task’ın zamanlanması
-
-✔️ Round-Robin benzeri task değişimi
-
-✔️ Idle task ve task state takibi
-
-✔️ PC üzerinde simülasyon olarak çalışabilir yapıda
-
-✔️ Girdi/Çıktı örnekleri ve görsellerle açıklama
-
-🚀 Nasıl Çalıştırılır?
-
-📌 Projeyi klonladıktan sonra terminalden aşağıdaki komutları çalıştırarak derleme ve çalıştırma yapılır:
+Bash
 
 git clone https://github.com/Ahazzzz/IsletimSistemleriOdevi.git
 cd IsletimSistemleriOdevi
+Projeyi Derleyin:
+
+Bash
+
 make
+Uygulamayı Çalıştırın:
+
+Bash
+
 ./scheduler
+(Not: Derleme sonrası oluşan çalıştırılabilir dosya adı Makefile içeriğine göre farklılık gösterebilir.)
 
+⚙️ Çalışma Mantığı
+Proje, giris.txt dosyasından okunan veya kod içerisinde tanımlanan görevleri (tasks) FreeRTOS yapısına uygun olarak oluşturur.
 
-🛑 make komutu çalışmıyorsa:
+Görev Öncelikleri: Her görevin belirli bir öncelik değeri vardır.
 
-gcc src/*.c -Iinclude -o scheduler
-./scheduler
+Zaman Dilimi: Aynı önceliğe sahip görevler, işlemciyi sırayla ve eşit sürelerle kullanır.
 
-📊 Çıktı Örnekleri
+İzleme: Çalışma esnasında hangi görevin ne zaman işlemciyi aldığı terminal üzerinden takip edilebilir.
 
-📌 Proje içerisinde hem girdi örneği (giris.txt) hem de çıktı ekran görüntüleri (Çıktı.jpg ve Çıktı.pdf) yer almaktadır. Bu örneklerle programın çalışması gözlemlenebilir.
+📄 Belgeler ve Raporlama
+Proje ile ilgili tüm teknik detaylara Rapor.pdf dosyasından ulaşabilirsiniz. Rapor şunları içerir:
 
-📑 Proje Raporu
+Sistem mimarisi ve tasarım kararları.
 
-Proje raporu Rapor.pdf içinde detaylı olarak verilmiştir. Raporda:
+FreeRTOS konfigürasyonu (FreeRTOSConfig.h).
 
-Problem tanımı,
-
-Mimarinin anlatımı,
-
-Kullanılan algoritmalar,
-
-Çalışma örnekleri,
-
-Sonuç ve değerlendirmeler yer almaktadır.
-
-🤝 Katkıda Bulunma
-
-Bu proje açık kaynaklıdır. Herkes katkıda bulunabilir!
-Katkı yapmak için:
-
-Repoyu fork’la
-
-Yeni bir branch aç (feature/ozellik)
-
-Değişikliklerini commit’le
-
-Pull request oluştur 😊
-
-📄 Lisans
-
-Bu proje açık kaynak olup özgün öğrenme amaçlı yapılmıştır.
-Lisans bilgisi proje içinde ayrıca yer almıyorsa MIT ya da BSD-like lisans ekleyebilirsin.
+Deneysel sonuçlar ve karşılaşılan zorluklar.
