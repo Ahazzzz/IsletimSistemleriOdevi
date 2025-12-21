@@ -4,6 +4,33 @@
 #include "scheduler.h"
 #include "queue.h"
 
+
+// Sabit Kırmızı (Zaman aşımı için)
+#define COLOR_RED_FIXED "\033[31m"
+#define RESET "\033[0m"
+
+// ID'lere atanacak renk havuzu (Kırmızı hariç diğer tonları ağırlıklı kullanıyoruz ki karışmasın)
+const char *ID_COLORS[] = {
+    "\033[32m", // Yeşil
+    "\033[33m", // Sarı
+    "\033[34m", // Mavi
+    "\033[35m", // Magenta
+    "\033[36m", // Cyan
+    "\033[92m", // Parlak Yeşil
+    "\033[93m", // Parlak Sarı
+    "\033[94m", // Parlak Mavi
+    "\033[95m", // Parlak Magenta
+    "\033[96m"  // Parlak Cyan
+};
+#define COLOR_COUNT 10
+
+const char* GetColorById(char* idStr) {
+    int id = atoi(idStr); 
+    return ID_COLORS[id % COLOR_COUNT]; 
+}
+
+/* -------------------------------------------------------------------------- */
+
 TaskData gorevler[50];
 int gorevSayisi = 0;
 int globalTime = 0;
@@ -12,14 +39,14 @@ int globalTime = 0;
 TaskData* queues[MAX_QUEUE_LEVEL][50];
 int queue_lens[MAX_QUEUE_LEVEL] = {0};
 
-// Kuyruğa yeni eleman ekleme (en sona ekler)
+// Kuyruğa yeni eleman ekleme
 void Enqueue(int p, TaskData* t) {
     if (p >= MAX_QUEUE_LEVEL) p = MAX_QUEUE_LEVEL - 1;
     queues[p][queue_lens[p]] = t;
     queue_lens[p]++;
 }
 
-// Kuyruğun başından eleman çıkarma
+// Kuyruktan eleman çıkarma
 TaskData* Dequeue(int p) {
     if (queue_lens[p] == 0) return NULL;
     TaskData* t = queues[p][0];
@@ -30,7 +57,7 @@ TaskData* Dequeue(int p) {
     return t;
 }
 
-// Belirli bir görevi kuyruktan silme (özellikle zaman aşımında lazım oluyor)
+// Kuyruktan belirli bir görevi silme
 void RemoveTaskFromQueue(int p, TaskData* t) {
     int foundIndex = -1;
     for (int i = 0; i < queue_lens[p]; i++) {
@@ -47,7 +74,7 @@ void RemoveTaskFromQueue(int p, TaskData* t) {
     }
 }
 
-// Dosyadan satır satır verileri çekip TaskData dizisine dolduruyoruz
+// Dosya okuma
 void DosyaOku(const char* dosyaAdi) {
     FILE *file = fopen(dosyaAdi, "r");
     if (file == NULL) { printf("HATA: Dosya yok!\n"); exit(1); }
@@ -70,7 +97,7 @@ void DosyaOku(const char* dosyaAdi) {
     fclose(file);
 }
 
-// Ana simülasyon döngüsü
+// Ana simülasyon
 void SimulationTask(void *pvParameters) {
     (void) pvParameters;
     printf("Simulasyon Basliyor...\n");
@@ -79,7 +106,7 @@ void SimulationTask(void *pvParameters) {
     TaskData* previousTask = NULL;
 
     for(;;) {
-        // Geliş zamanı gelen prosesleri kuyruğa alalım
+        // Yeni gelenleri kuyruğa ekle
         for(int i=0; i<gorevSayisi; i++) {
             if (gorevler[i].arrivalTime == globalTime) {
                 gorevler[i].startTime = globalTime;
@@ -87,12 +114,10 @@ void SimulationTask(void *pvParameters) {
             }
         }
 
-        // Karar mekanizması: Çalışacak görevi seç
-        // Eğer 0 öncelikli (en yüksek) bir iş varsa, o bitene kadar devam eder (Gerçek zamanlı)
+        // Görev seçimi
         if (currentTask != NULL && currentTask->priority == 0 && currentTask->remainingTime > 0) {
-            // Devam...
+            // Priority 0 (Gerçek Zamanlı) kesilmez
         } else {
-            // Değilse, kuyrukları sırayla kontrol et (En üstten alta)
             currentTask = NULL;
             for(int p=0; p < MAX_QUEUE_LEVEL; p++) {
                 if (queue_lens[p] > 0) {
@@ -102,40 +127,45 @@ void SimulationTask(void *pvParameters) {
             }
         }
 
-        // Seçilen görevi ekrana yazdır ve süresini düş
+        // Çıktı ve yürütme
         if (currentTask != NULL && currentTask->remainingTime > 0) {
+            // Normal durumlarda ID'ye özel rengi al
+            const char* taskColor = GetColorById(currentTask->id);
+
             if (currentTask->hasStarted == 0) {
-                printf(BLUE "%-2d.0000 sn %-20s (id:%-4s  öncelik:%2d  kalan süre:%2d sn)\n" RESET,
-                       globalTime, "proses başladı",
-                       currentTask->id, currentTask->priority, currentTask->remainingTime);
+                printf("%s%-2d.0000 sn %-20s (id:%-4s  öncelik:%2d  kalan süre:%2d sn)%s\n",
+                       taskColor, globalTime, "proses başladı",
+                       currentTask->id, currentTask->priority, currentTask->remainingTime, RESET);
                 currentTask->hasStarted = 1;
                 currentTask->isRunning = 1;
             }
             else if (currentTask != previousTask) {
-                printf(BLUE "%-2d.0000 sn %-20s (id:%-4s  öncelik:%2d  kalan süre:%2d sn)\n" RESET,
-                       globalTime, "proses başladı",
-                       currentTask->id, currentTask->priority, currentTask->remainingTime);
+                printf("%s%-2d.0000 sn %-20s (id:%-4s  öncelik:%2d  kalan süre:%2d sn)%s\n",
+                       taskColor, globalTime, "proses başladı",
+                       currentTask->id, currentTask->priority, currentTask->remainingTime, RESET);
                 currentTask->isRunning = 1;
             }
             else {
-                printf(GREEN "%-2d.0000 sn %-20s (id:%-4s  öncelik:%2d  kalan süre:%2d sn)\n" RESET,
-                       globalTime, "proses yürütülüyor",
-                       currentTask->id, currentTask->priority, currentTask->remainingTime);
+                printf("%s%-2d.0000 sn %-20s (id:%-4s  öncelik:%2d  kalan süre:%2d sn)%s\n",
+                       taskColor, globalTime, "proses yürütülüyor",
+                       currentTask->id, currentTask->priority, currentTask->remainingTime, RESET);
             }
 
             currentTask->remainingTime--;
             previousTask = currentTask;
         }
 
-        vTaskDelay(pdMS_TO_TICKS(1000)); // 1 saniye bekle (Gerçek zamanlı simülasyon)
+        vTaskDelay(pdMS_TO_TICKS(1000));
         globalTime++;
 
-        // Görev bittiyse veya önceliği düşürülecekse yapılacak işlemler
+        // Görev bitişi veya öncelik düşümü
         if (currentTask != NULL) {
             if (currentTask->remainingTime == 0) {
-                printf(MAGENTA "%-2d.0000 sn %-20s (id:%-4s  öncelik:%2d  kalan süre: 0 sn)\n" RESET,
-                       globalTime, "proses sonlandı",
-                       currentTask->id, currentTask->priority);
+                // Sonlanma durumu (Normal renk)
+                const char* taskColor = GetColorById(currentTask->id);
+                printf("%s%-2d.0000 sn %-20s (id:%-4s  öncelik:%2d  kalan süre: 0 sn)%s\n",
+                       taskColor, globalTime, "proses sonlandı",
+                       currentTask->id, currentTask->priority, RESET);
 
                 Dequeue(currentTask->priority);
                 currentTask->isRunning = 0;
@@ -143,15 +173,17 @@ void SimulationTask(void *pvParameters) {
                 previousTask = NULL;
             }
             else if (currentTask->priority > 0) {
-                // Önceliği 0'dan büyükse, her saniye önceliğini bir düşürüp (sayıca artış) alt kuyruğa atıyoruz
+                // Öncelik düşürme (User process)
                 Dequeue(currentTask->priority);
                 if (currentTask->priority < MAX_QUEUE_LEVEL - 1) {
                     currentTask->priority++;
                 }
 
-                printf(YELLOW "%-2d.0000 sn %-20s (id:%-4s  öncelik:%2d  kalan süre:%2d sn)\n" RESET,
-                       globalTime, "proses askıda",
-                       currentTask->id, currentTask->priority, currentTask->remainingTime);
+                // Askıya alınma durumu (Normal renk)
+                const char* taskColor = GetColorById(currentTask->id);
+                printf("%s%-2d.0000 sn %-20s (id:%-4s  öncelik:%2d  kalan süre:%2d sn)%s\n",
+                       taskColor, globalTime, "proses askıda",
+                       currentTask->id, currentTask->priority, currentTask->remainingTime, RESET);
 
                 Enqueue(currentTask->priority, currentTask);
                 currentTask->isRunning = 0;
@@ -159,7 +191,7 @@ void SimulationTask(void *pvParameters) {
             }
         }
 
-        // Tüm görevler bitti mi kontrolü
+        // Simülasyon bitiş kontrolü
         int aktif = 0;
         for(int i=0; i<gorevSayisi; i++)
             if (gorevler[i].remainingTime > 0) aktif = 1;
@@ -168,19 +200,20 @@ void SimulationTask(void *pvParameters) {
             exit(0);
         }
 
-        // Zaman aşımı (Timeout) kontrolü: 20 saniye kuralı
+        // Zaman aşımı (20 sn kuralı)
         for(int i=0; i<gorevSayisi; i++) {
             if (gorevler[i].startTime != -1 && gorevler[i].remainingTime > 0) {
                 int timePassed = globalTime - gorevler[i].startTime;
                 if (timePassed >= 20) {
                     int kill = 0;
-                    if (gorevler[i].hasStarted == 0) kill = 1; // Hiç başlamadıysa
-                    else if (gorevler[i].priority < 3) kill = 1; // Başladı ama önceliği düşükse
+                    if (gorevler[i].hasStarted == 0) kill = 1; 
+                    else if (gorevler[i].priority < 3) kill = 1;
 
                     if (kill) {
-                        printf(RED "%-2d.0000 sn %-20s (id:%-4s  öncelik:%2d  kalan süre:%2d sn)\n" RESET,
+                        // BURASI DEĞİŞTİ: Zaman aşımı KESİNLİKLE KIRMIZI olacak
+                        printf(COLOR_RED_FIXED "%-2d.0000 sn %-20s (id:%-4s  öncelik:%2d  kalan süre:%2d sn)%s\n",
                                globalTime, "proses zamanaşımı",
-                               gorevler[i].id, gorevler[i].priority, gorevler[i].remainingTime);
+                               gorevler[i].id, gorevler[i].priority, gorevler[i].remainingTime, RESET);
 
                         RemoveTaskFromQueue(gorevler[i].priority, &gorevler[i]);
                         gorevler[i].remainingTime = 0;
